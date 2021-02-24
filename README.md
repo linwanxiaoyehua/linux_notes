@@ -1,2 +1,2 @@
-# 林湾村小野花的linux C语言编程笔记
-渣渣本渣
+# linwanxiaoyehua(林湾村小野花)'s Linux-c programing learning notes
+
