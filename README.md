@@ -1,1 +1,2 @@
-Linux Learing
+# 林湾村小野花的linux C语言编程笔记
+渣渣本渣
