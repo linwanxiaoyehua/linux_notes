@@ -257,4 +257,279 @@ int main(int argc, char *argv[]){
 
 #### 注意
 
-如果读写两端未建立，阻塞在`open函数`
+如果读写两端未建立连接，阻塞在`open函数`
+
+### 是用两根管道进行全双工函数通信
+
+#### CHAT1.C
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 3);
+    int fdr = open(argv[1], O_RDONLY);
+    int fdW = open(argv[2], O_wrONLY);
+    puts("chat1");
+    char buf[128] = {0};
+    while(1){
+    	memset(buf, 0, sizeof(buf));
+    	read(fdr, buf, 127);
+    	puts(buf);
+        memset(buf, 0, sizeof(buf));
+        read(STDIN_FILENO, buf, 127);
+   		write(fdw, buf, strlen(buf));
+    }
+    return 0;
+}
+```
+
+#### CHAT2.C
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 3);
+    int fdW = open(argv[1], O_wrONLY);
+    int fdr = open(argv[2], O_RDONLY);
+    puts("chat2");
+    char buf[128] = {0};
+    while(1){
+    	memset(buf, 0, sizeof(buf));
+    	read(fdr, buf, 127);
+    	puts(buf);
+        memset(buf, 0, sizeof(buf));
+        read(STDIN_FILENO, buf, 127);
+   		write(fdw, buf, strlen(buf));
+    }
+    return 0;
+}
+```
+
+## IO多路复用（转接）
+
+`集合`：收集所有会导致阻塞的事件，然后等待这个集合，某个事件就绪，集合得到消息，提交给用户
+
+### select函数
+
+![image-20210225150958259](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225150958259.png)
+
+`ndfs`：最大文件描述符+1 `readfds`：读集合 `write`：写集合
+
+#### 使用方法
+
+1. 设置一个等待集合
+   1. `fd_set`定义一个集合
+   2. `FD_ZERO`集合初始化
+
+2. 把会发生阻塞的文件描述符加入集合（注册、监听、侦听），使用`FD_SET`接口
+3. 使用`select`函数等待集合，等到集合中任意一个文件描述符就绪
+4. 使用`FD_ISSET`判断某个文件描述符是否就绪，使用`if`进行判断是否进行后续操作
+
+### 即时聊天代码示例
+
+`初始化`、`监听`均需放在循环内
+
+#### CHAT1.C
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 3);
+    int fdr = open(argv[1], O_RDONLY);
+    int fdW = open(argv[2], O_wrONLY);
+    puts("chat1");
+    fd_set rdset;
+    while(1){
+    	FD_ZERO(&rdset);
+    	FD_SET(STDIN_FILENO, &rdset);
+    	FD_SET(fdr, &rdset);
+    	char buf[128];
+    	select(fdr+1, &rdset, NULL, NULL, NULL);//永远等就是空指针
+    	if(FD_ISSET(STDIN_FILENO, &rdset)){
+        	puts("message from STDIN");
+        	memset(buf, 0, sizeof(buf));
+        	read(STDIN_FILENO, buf, sizeof(buf)-1);
+        	write(fdw, buf, sizeof(buf));
+        	puts(buf);
+    	}
+    	if(FD_ISSET(fdr, &rdset)){
+        	puts("message from pipe");
+        	memset(buf, 0, sizeof(buf)-1);
+        	read(fdr, buf, sizeof(buf)-1);
+    	    puts(buf);
+    	}
+    }
+    close(fdr);
+    close(fdw);
+    return 0;
+}
+```
+
+#### CHAT2.C
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 3);
+    int fdW = open(argv[2], O_wrONLY);
+    int fdr = open(argv[1], O_RDONLY);
+    puts("chat2");
+    fd_set rdset;
+    while(1){
+    	FD_ZERO(&rdset);
+    	FD_SET(STDIN_FILENO, &rdset);
+    	FD_SET(fdr, &rdset);
+    	char buf[128];
+    	select(fdr+1, &rdset, NULL, NULL, NULL);//永远等就是空指针
+    	if(FD_ISSET(STDIN_FILENO, &rdset)){
+        	puts("message from STDIN");
+        	memset(buf, 0, sizeof(buf));
+        	read(STDIN_FILENO, buf, sizeof(buf)-1);
+        	write(fdw, buf, sizeof(buf));
+        	puts(buf);
+    	}
+    	if(FD_ISSET(fdr, &rdset)){
+        	puts("message from pipe");
+        	memset(buf, 0, sizeof(buf)-1);
+        	read(fdr, buf, sizeof(buf)-1);
+    	    puts(buf);
+    	}
+    }
+    close(fdr);
+    close(fdw);
+    return 0;
+}
+```
+
+### 退出问题
+
+1. write先关闭，read读一个`EOF`，`FD`一直就绪
+2. read先关闭，出现崩溃，触发`SIG_PIPE`信号
+
+#### 从管道识别EOF退出
+
+```c
+int ret = read(fdr, buf, sizeof(buf));
+if(ret == 0){
+    puts("over");
+    break;
+}
+```
+
+#### 从键盘识别EOF退出
+
+```c
+ift read(STDIN_FILENO, buf, sizeof(buf)-1);
+if(ret == 0){
+    puts("I quit");
+    write(fdw, "you are a good person", num);
+    break;
+}
+```
+
+## select函数超时机制
+
+![image-20210225162527243](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225162527243.png)
+
+### 代码示例
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 3);
+    int fdW = open(argv[2], O_wrONLY);
+    int fdr = open(argv[1], O_RDONLY);
+    puts("chat2");
+    fd_set rdset;
+    while(1){
+    	FD_ZERO(&rdset);
+    	FD_SET(STDIN_FILENO, &rdset);
+    	FD_SET(fdr, &rdset);
+    	char buf[128];
+        //以下开始
+        struct timeval timeout;
+        timeout.tv_sec = 2;
+        timeout.tv_usec = 500000;
+        int sret = select(fdr+1, &rdset, NULL, NULL, NULL);//永远等就是空指针
+        if(sret == 0){
+            puts("timeout!");
+        }else{
+            if(FD_ISSET(STDIN_FILENO, &rdset)){
+        		puts("message from STDIN");
+        		memset(buf, 0, sizeof(buf));
+        		read(STDIN_FILENO, buf, sizeof(buf)-1);
+        		write(fdw, buf, sizeof(buf));
+        		puts(buf);
+    		}
+    		if(FD_ISSET(fdr, &rdset)){
+        		puts("message from pipe");
+        		memset(buf, 0, sizeof(buf)-1);
+        		read(fdr, buf, sizeof(buf)-1);
+    	    	puts(buf);
+    		}
+        }
+    }
+    close(fdr);
+    close(fdw);
+    return 0;
+}
+```
+
+## 写入阻塞
+
+管道中挤压数据过多，无法继续写入，`O_RDWR`：非阻塞方式建立读写端，`O_NONBLK`同理（遵循`posix`规则）
+
+### 示例代码
+
+```c
+#include <func.h>
+int main(int argc, char *argv[]){
+    ARGS_CHECK(args, 2);
+    int fdr = open(argv[1], O_RDWR);
+    int fdw = open(argv[1], O_RDWR);
+    puts("established");
+    fd_set rdset;
+    fd_set wrset;
+    int cnt = 0;
+    char wrbuf[4096] = {0};
+    char rdbuf[4096] = {0};
+    while(1){
+        FD_ZERO(&rdset);
+        FD_ZERO(&wrset);
+        FD_SET(&rdset);
+        FD_SET(&wrset);
+        select(fdw+1, &rdset, &wrset, NULL, NULL);
+        if(FD_ISSET(fdw, &wrset)){
+            printf("cnt = %d", ++cnt);
+            write(fdw, wrbuf, 4096);
+            puts("write success");
+        }
+        if(FD_ISSET(fdr, &rdet)){
+            read(fdr, rdbuf, 2048);
+            puts("read success");
+        }
+    }
+    return 0;
+}
+```
+
+### 出错问题
+
+```c
+if(FD_ISSET(fdw, &wrset)){
+            printf("cnt = %d", ++cnt);
+            write(fdw, wrbuf, 8192);//此处出错
+            puts("write success");
+}
+```
+
+`pipe`存储在内核管道缓冲区，`ulimit -a`可查询该缓冲区大小，写就绪就是内核管道缓冲区为空
+
+写入操作大小不能超过内核管道缓冲区大小
+
+## select函数原理
+
+![image-20210225165740041](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225165740041.png)
+
+1. 将`fd_set`拷贝至`内核`
+2. 0~`nfds-1`为文件描述符，进行循环，即轮询，另外一个接口为`epoll`（采用红黑树进行存储，查找复杂度为O(logN)；
