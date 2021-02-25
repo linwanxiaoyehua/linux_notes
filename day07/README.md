@@ -1,4 +1,6 @@
-/O，打开文件描述符
+# 昨日回顾
+
+不带文件缓冲区的I/O，打开文件描述符
 
 ![image-20210225095215666](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225095215666.png)
 
@@ -14,23 +16,22 @@
 
 ## lseek函数
 
-    ![image-20210225095643138](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225095643138.png)
+![image-20210225095643138](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225095643138.png)
 
 ### 函数实例
 
-    ```c
+```c
 #include <func.h>
-    int main(int argc, char *argv[]){
-            ARGS_CHECH(argc, 2);
-                int fd = open(argv[1], O_RDWR);
-                    ERROR_CHECK(fd, -1, "open");
-                        lseek(fd, 40960, SEEK_SET);//偏移过多会产生文件空洞
-                            write(fd, 1, "1");
-                                close(fd);
-                                    return 0;
-                                    
-    }
-`````
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 2);
+    int fd = open(argv[1], O_RDWR);
+    ERROR_CHECK(fd, -1, "open");
+    lseek(fd, 40960, SEEK_SET);//偏移过多会产生文件空洞
+    write(fd, 1, "1");
+    close(fd);
+    return 0;
+}
+```
 
 ## 文件流与文件描述符的关系
 
@@ -41,17 +42,16 @@
 ```c
 #include <func.h>
 int main(int argc, char *argv[]){
-        ARGS_CHECH(argc, 2);
-            FILE *fp = fopen(argv[1], "r+");
-                ERROR_CHECK(fp, NULL, "fopen");
-                    write(3. "howareyou", 9);//3为fileno
-                        int fd = fp->_fileno;
-                            write(fd, "howareyou", 9);//等同于上句
-                                fclose(fp);
-                                    return 0;
-                                    
+    ARGS_CHECH(argc, 2);
+    FILE *fp = fopen(argv[1], "r+");
+    ERROR_CHECK(fp, NULL, "fopen");
+    write(3. "howareyou", 9);//3为fileno
+    int fd = fp->_fileno;
+    write(fd, "howareyou", 9);//等同于上句
+    fclose(fp);
+    return 0;
 }
-`````
+```
 
 ### fileno函数
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 ```c
 FILE *fp = fopen(argv[1], "r+");
 int fd = fileno(fp);
-`````
+```
 
 ## 文件流的缓冲类型
 
@@ -91,41 +91,39 @@ int fd = fileno(fp);
 ```c
 #include <func.h>
 int main(int argc, char *argv[]){
-        ARGS_CHECH(argc, 2);
-            int oldfd = open(argv[1], O_RDWR);
-                ERROR_CHECK(oldfd, -1, "open");
-                    printf("oldfd = %d\n", oldfd);
-                        int newfd = dup(oldfd);
-                            printf("newfd = %d\n", newfd);
-                                write(oldfd, "hello", 5);
-                                    write(newfd, "world", 5);
-                                        close(newfd);
-                                            close(oldfd);
-                                                return 0;
-                                                
+    ARGS_CHECH(argc, 2);
+    int oldfd = open(argv[1], O_RDWR);
+    ERROR_CHECK(oldfd, -1, "open");
+    printf("oldfd = %d\n", oldfd);
+    int newfd = dup(oldfd);
+    printf("newfd = %d\n", newfd);
+    write(oldfd, "hello", 5);
+    write(newfd, "world", 5);
+    close(newfd);
+    close(oldfd);
+    return 0;
 }
-`````
+```
 
 `close`函数只会断掉指向，会使用到`引用计数`
 
 ```c
 #include <func.h>
 int main(int argc, char *argv[]){
-        ARGS_CHECH(argc, 2);
-            int oldfd = open(argv[1], O_RDWR);
-                ERROR_CHECK(oldfd, -1, "open");
-                    printf("oldfd = %d\n", oldfd);
-                        int newfd = dup(oldfd);
-                            printf("newfd = %d\n", newfd);
-                                write(oldfd, "hello", 5);
-                                    close(oldfd);
-                                        int ret = write(newfd, "world", 5);
-                                            ERROR_CHECK(ret, -1, "write");
-                                                close(newfd);
-                                                    return 0;
-                                                    
+    ARGS_CHECH(argc, 2);
+    int oldfd = open(argv[1], O_RDWR);
+    ERROR_CHECK(oldfd, -1, "open");
+    printf("oldfd = %d\n", oldfd);
+    int newfd = dup(oldfd);
+    printf("newfd = %d\n", newfd);
+    write(oldfd, "hello", 5);
+    close(oldfd);
+    int ret = write(newfd, "world", 5);
+    ERROR_CHECK(ret, -1, "write");
+    close(newfd);
+    return 0;
 }
-`````
+```
 
 ### 使用dup函数实现文件重定向
 
@@ -139,26 +137,25 @@ fprintf(stdout)-->FO-->
 
 1. open打开文件
 2. close(1)
-    3. dup(3)
+3. dup(3)
 
-    ```c
+```c
 #include <func.h>
-    int main(int argc, char *argv[]){
-            ARGS_CHECH(argc, 2);
-                int fd = open(argv[1], O_RDWR);
-                    ERROR_CHECK(oldfd, -1, "open");
-                        printf("\n");//清空内部内容，需要先打印换行
-                            close(STDOUT_FILENO);
-                                int newfd = dup(fd);//newfd == 1
-                                    ERROR_CHECK(newfd, -1, "newfd");
-                                        printf("newfd = %d\n", newfd);
-                                            printf("can yous see me?");
-                                                close(fd);
-                                                    close(newfd);
-                                                        return 0;
-                                                        
-    }
-`````
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 2);
+    int fd = open(argv[1], O_RDWR);
+    ERROR_CHECK(oldfd, -1, "open");
+    printf("\n");//清空内部内容，需要先打印换行
+    close(STDOUT_FILENO);
+    int newfd = dup(fd);//newfd == 1
+    ERROR_CHECK(newfd, -1, "newfd");
+    printf("newfd = %d\n", newfd);
+    printf("can yous see me?");
+    close(fd);
+    close(newfd);
+    return 0;
+}
+```
 
 ### 使用dup2函数实现文件重定向
 
@@ -170,34 +167,33 @@ fprintf(stdout)-->FO-->
 
 1. dup2(STDOUT_FILENO, 10)
 
-    2. a)close(1), dup(3)
+2. a)close(1), dup(3)
 
-       b)dup2(3, 1)
+   b)dup2(3, 1)
 
-    3. a)close(1), dup(10)
+3. a)close(1), dup(10)
 
-       b)dup2(10, 1);
+   b)dup2(10, 1);
 
-       ![image-20210225111905315](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225111905315.png)
+![image-20210225111905315](https://gitee.com/xiao_yehua/pic/raw/master/image-20210225111905315.png)
 
-       ```c
+```c
 #include <func.h>
-       int main(int argc, char *argv[]){
-               ARGS_CHECH(argc, 2);
-                   int fd = open(argv[1], O_RDWR);
-                       ERROR_CHECK(fd, -1, "open");
-                           printf("fd = %d\n", fd);
-                               dup2(STDOUT_FILENO, 10);
-                                   dup2(fd, STDOUT_FILENO);
-                                       printf("You cant't see me\n");
-                                           dup2(10, STDOIT_FILENO);
-                                               printf("You can see me\n");
-                                                   close(fd);
-                                                       close(10);
-                                                           return 0;
-                                                           
-       }
-`````
+int main(int argc, char *argv[]){
+    ARGS_CHECH(argc, 2);
+    int fd = open(argv[1], O_RDWR);
+    ERROR_CHECK(fd, -1, "open");
+    printf("fd = %d\n", fd);
+    dup2(STDOUT_FILENO, 10);
+    dup2(fd, STDOUT_FILENO);
+    printf("You cant't see me\n");
+    dup2(10, STDOIT_FILENO);
+    printf("You can see me\n");
+    close(fd);
+    close(10);
+    return 0;
+}
+```
 
 ## 管道
 
@@ -222,7 +218,7 @@ mkfifo 1.pipe #创建管道
 echo hello > 1.pipe #写入pipe
 cat 1.pipe #读取pipe
 #只要有一端没有完成管道就会阻塞
-`````
+```
 
 ### 使用单根管道进行函数通信
 
@@ -231,48 +227,34 @@ cat 1.pipe #读取pipe
 ```c
 #include <func.h>
 int main(int argc, char *argv[]){
-        ARGS_CHECH(argc, 2);
-            int fdr = open(argv[1], O_RDONLY);
-                puts("open");
-                    ERROR_CHECK(fdr, -1, "open");
-                        char buf[128] = {0};
-                            read(fdr, buf, 127);
-                                puts("read");
-                                    puts(buf);
-                                        close(fd);
-                                            return 0;
-                                            
+    ARGS_CHECH(argc, 2);
+    int fdr = open(argv[1], O_RDONLY);
+    puts("open");
+    ERROR_CHECK(fdr, -1, "open");
+    char buf[128] = {0};
+    read(fdr, buf, 127);
+    puts("read");
+    puts(buf);
+    close(fd);
+    return 0;
 }
-`````
+```
 
 #### 写入端
 
 ```c
 #include <func.h>
 int main(int argc, char *argv[]){
-        ARGS_CHECH(argc, 1);
-            int fdw = open(argv[2], O_WRONLY);
-                ERROR_CHECK(fdw, -1, "open");
-                    char buf[128] = {0};
-                        write(fdw, "hello", 5);
-                            close(fd);
-                                return 0;
-                                
+    ARGS_CHECH(argc, 1);
+    int fdw = open(argv[2], O_WRONLY);
+    ERROR_CHECK(fdw, -1, "open");
+    char buf[128] = {0};
+    write(fdw, "hello", 5);
+    close(fd);
+    return 0;
 }
-`````
+```
 
 #### 注意
 
 如果读写两端未建立，阻塞在`open函数`
-````
-````
-````
-````
-````
-```
-```
-````
-````
-````
-````
-````
