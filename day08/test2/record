@@ -1,0 +1,6 @@
+user:me
+pid = 12040, ppid = 9844, uid = 1000, euid = 1000, gid = 1000, egid = 1000
+user:test
+pid = 12407, ppid = 12297, uid = 1001, euid = 1001, gid = 1001, egid = 1001
+user:root
+pid = 12476, ppid = 12419, uid = 0, euid = 0, gid = 0, egid = 0

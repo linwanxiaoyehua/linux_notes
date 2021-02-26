@@ -1,0 +1,26 @@
+验证ps命令显示的是有效用户ID，还是真实用户ID
+[me@xiaoyehua ~/github/day08/test7]$ vim main.c
+[me@xiaoyehua ~/github/day08/test8]$ make
+gcc main.c -o main
+[me@xiaoyehua ~/github/day08/test8]$ chmod u+s main
+[me@xiaoyehua ~/github/day08/test8]$ ll
+total 24
+drwxrwxr-x  2 me me 4096 Feb 26 20:51 ./
+drwxrwxr-x 10 me me 4096 Feb 26 20:09 ../
+-rwsrwxr-x  1 me me 8168 Feb 26 20:51 main*
+-rw-rw-r--  1 me me   92 Feb 26 20:50 main.c
+-rw-rw-r--  1 me me  172 Feb 26 20:49 makefile
+[me@xiaoyehua ~/github/day08/test8]$ ./main &
+[1] 23599
+[me@xiaoyehua ~/github/day08/test8]$ ps -elf|grep main
+0 R me       23599 14157 99  80   0 -  1096 -      20:52 pts/1    00:00:10 ./main
+0 S me       23623 14157  0  80   0 -  3445 pipe_w 20:52 pts/1    00:00:00 grep --color=auto main
+[me@xiaoyehua ~/github/day08/test8]$ su test
+Password: 
+test@xiaoyehua:/home/me/github/day08/test8$ ./main &
+[1] 23931
+test@xiaoyehua:/home/me/github/day08/test8$ ps -elf|grep main
+0 R me       23931 23881 99  80   0 -  1096 -      20:54 pts/1    00:00:19 ./main
+0 S test     23972 23881  0  80   0 -  3445 pipe_w 20:54 pts/1    00:00:00 grep --color=auto main
+
+综合以上内容，ps命令中显示的为有效用户ID

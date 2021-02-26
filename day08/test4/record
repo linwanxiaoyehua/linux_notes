@@ -1,0 +1,86 @@
+创建一个目录，通过设置粘滞位，让用户只能删除自己创建的文件，不能删除其他用户的文件。
+[me@xiaoyehua ~/github/day08/test4]$ echo "创建一个目录，通过设置粘 滞位，让用户只能删除自己创建的文件，不能删除其他用户的文件。" >> record
+[me@xiaoyehua ~/github/day08/test4]$ mkdir dir
+[me@xiaoyehua ~/github/day08/test4]$ ll
+total 16
+drwxrwxr-x  3 me me 4096 Feb 26 20:09 ./
+drwxrwxr-x 10 me me 4096 Feb 26 20:09 ../
+drwxrwxr-x  2 me me 4096 Feb 26 20:09 dir/
+-rw-rw-r--  1 me me  127 Feb 26 20:09 record
+[me@xiaoyehua ~/github/day08/test4]$ chmod o+t dir
+[me@xiaoyehua ~/github/day08/test4]$ chmod o+w dir
+[me@xiaoyehua ~/github/day08/test4]$ ll
+total 16
+drwxrwxr-x  3 me me 4096 Feb 26 20:09 ./
+drwxrwxr-x 10 me me 4096 Feb 26 20:09 ../
+drwxrwxrwt  2 me me 4096 Feb 26 20:09 dir/
+-rw-rw-r--  1 me me  127 Feb 26 20:09 record
+[me@xiaoyehua ~/github/day08/test4]$ cd dir
+[me@xiaoyehua ~/github/day08/test4/dir]$ touch file_me
+[me@xiaoyehua ~/github/day08/test4/dir]$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:10 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me me    0 Feb 26 20:10 file_me
+[me@xiaoyehua ~/github/day08/test4/dir]$ rm file_me
+[me@xiaoyehua ~/github/day08/test4/dir]$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:10 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+[me@xiaoyehua ~/github/day08/test4/dir]$ touch file_me
+[me@xiaoyehua ~/github/day08/test4/dir]$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:10 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me me    0 Feb 26 20:10 file_me
+[me@xiaoyehua ~/github/day08/test4/dir]$ su test
+Password: 
+test@xiaoyehua:/home/me/github/day08/test4/dir$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:10 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me me    0 Feb 26 20:10 file_me
+test@xiaoyehua:/home/me/github/day08/test4/dir$ rm file_me
+rm: remove write-protected regular empty file 'file_me'? 
+test@xiaoyehua:/home/me/github/day08/test4/dir$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:10 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me me    0 Feb 26 20:10 file_me
+test@xiaoyehua:/home/me/github/day08/test4/dir$ touch file_test
+test@xiaoyehua:/home/me/github/day08/test4/dir$ ll
+total 8
+drwxrwxrwt 2 me   me   4096 Feb 26 20:11 ./
+drwxrwxr-x 3 me   me   4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me   me      0 Feb 26 20:10 file_me
+-rw-rw-r-- 1 test test    0 Feb 26 20:11 file_test
+test@xiaoyehua:/home/me/github/day08/test4/dir$ rm file_test
+test@xiaoyehua:/home/me/github/day08/test4/dir$ ll
+total 8
+drwxrwxrwt 2 me me 4096 Feb 26 20:11 ./
+drwxrwxr-x 3 me me 4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me me    0 Feb 26 20:10 file_me
+test@xiaoyehua:/home/me/github/day08/test4/dir$ touch file_test
+test@xiaoyehua:/home/me/github/day08/test4/dir$ ll
+total 8
+drwxrwxrwt 2 me   me   4096 Feb 26 20:11 ./
+drwxrwxr-x 3 me   me   4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me   me      0 Feb 26 20:10 file_me
+-rw-rw-r-- 1 test test    0 Feb 26 20:11 file_test
+test@xiaoyehua:/home/me/github/day08/test4/dir$ exit
+exit
+[me@xiaoyehua ~/github/day08/test4/dir]$ ll
+total 8
+drwxrwxrwt 2 me   me   4096 Feb 26 20:11 ./
+drwxrwxr-x 3 me   me   4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me   me      0 Feb 26 20:10 file_me
+-rw-rw-r-- 1 test test    0 Feb 26 20:11 file_test
+[me@xiaoyehua ~/github/day08/test4/dir]$ rm file_test 
+rm: remove write-protected regular empty file 'file_test'? 
+[me@xiaoyehua ~/github/day08/test4/dir]$ ll
+total 8
+drwxrwxrwt 2 me   me   4096 Feb 26 20:11 ./
+drwxrwxr-x 3 me   me   4096 Feb 26 20:09 ../
+-rw-rw-r-- 1 me   me      0 Feb 26 20:10 file_me
+-rw-rw-r-- 1 test test    0 Feb 26 20:11 file_test
+

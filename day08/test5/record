@@ -1,0 +1,36 @@
+后台运行一个进程，用命令拉回到前台，再使其变成T状态在后台挂起，再让它后台继续运行，然后通过kill命令杀掉
+[me@xiaoyehua ~/github/day08/test4/dir]$ cd ../../test5
+[me@xiaoyehua ~/github/day08/test5]$ cp ../test3/makefile makefile
+[me@xiaoyehua ~/github/day08/test5]$ vim main.c
+[me@xiaoyehua ~/github/day08/test5]$ make
+gcc main.c -o main
+[me@xiaoyehua ~/github/day08/test5]$ cat main.c
+#include <func.h>
+
+int main()
+{
+    while(1){
+
+            
+    }
+        return 0;
+        
+}
+
+[me@xiaoyehua ~/github/day08/test5]$ ./main &
+[1] 17509
+[me@xiaoyehua ~/github/day08/test5]$ jobs
+[1]+  Running                 ./main &
+[me@xiaoyehua ~/github/day08/test5]$ fg 1
+./main
+^Z
+[1]+  Stopped                 ./main
+[me@xiaoyehua ~/github/day08/test5]$ jobs
+[1]+  Stopped                 ./main
+[me@xiaoyehua ~/github/day08/test5]$ ps -elf|grep main
+0 T me       17509 12232 52  80   0 -  1096 signal 20:16 pts/0    00:00:34 ./main
+0 S me       17669 12232  0  80   0 -  3445 pipe_w 20:17 pts/0    00:00:00 grep --color=auto main
+[me@xiaoyehua ~/github/day08/test5]$ kill -9 17509
+[1]+  Killed                  ./main
+[me@xiaoyehua ~/github/day08/test5]$ jobs
+

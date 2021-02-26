@@ -1,0 +1,26 @@
+[me@xiaoyehua ~/github/day08/test3]$ vim main.c
+[me@xiaoyehua ~/github/day08/test3]$ make
+gcc main.c -o main
+[me@xiaoyehua ~/github/day08/test3]$ touch record
+[me@xiaoyehua ~/github/day08/test3]$ touch file
+[me@xiaoyehua ~/github/day08/test3]$ ./main file
+[me@xiaoyehua ~/github/day08/test3]$ cat file
+hello[me@xiaoyehua ~/github/day08/test3]$ vim main.c 
+[me@xiaoyehua ~/github/day08/test3]$ make
+gcc main.c -o main
+[me@xiaoyehua ~/github/day08/test3]$ ./main file
+[me@xiaoyehua ~/github/day08/test3]$ cat file
+hello
+[me@xiaoyehua ~/github/day08/test3]$ su test
+Password: 
+test@xiaoyehua:/home/me/github/day08/test3$ ./main file
+open: Permission denied
+test@xiaoyehua:/home/me/github/day08/test3$ exit
+exit
+[me@xiaoyehua ~/github/day08/test3]$ chmod u+s main
+[me@xiaoyehua ~/github/day08/test3]$ su test
+Password: 
+test@xiaoyehua:/home/me/github/day08/test3$ ./main file
+test@xiaoyehua:/home/me/github/day08/test3$ cat file
+hello
+
