@@ -1,0 +1,12 @@
+统计进程结束的方式有哪些？return、exit、_exit有什么区别？
+答：
+进程的结束方式有：
+1. 在main中return
+2. 在任意地方使用exit
+3. _exit与_Exit
+4. 使用abort
+5. 受到控制信号，例如ctrl+c，crtl+\
+return、exit与_exit之间的区别：
+1. return一般是从被调函数返回主调函数使用，只有在main函数中使用return才会结束整个进程，而exit函数可以在任何地方使用
+2. exit()函数在调用 exit 系统调用之前要检查文件的打开情况,把文件缓冲区中的内容写回文件。而_exit()函数则会直接退出并销毁使用内存
+
