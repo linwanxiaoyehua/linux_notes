@@ -6,7 +6,11 @@
  * @modify   2021-03-09
  */
 
+<<<<<<< HEAD
 #include <func.h>
+=======
+#include "../func.h"
+>>>>>>> 0e6287a69ee9c405571833ad71aa916aacdcab2d
 typedef struct {
     int num;
     int thread1;
