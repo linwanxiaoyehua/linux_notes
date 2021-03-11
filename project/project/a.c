@@ -1,4 +1,4 @@
-#include <func.h>
+#include "../../func.h"
 char pipe_name[2][7] = {"1.pipe", "2.pipe"};
 void out(){
     int shm_pid = shmget(1001, 4096, IPC_CREAT|0600);

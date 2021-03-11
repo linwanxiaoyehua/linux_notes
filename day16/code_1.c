@@ -6,7 +6,7 @@
  * @modify   2021-03-09
  */
 
-#include <func.h>
+#include "../func.h"
 typedef struct {
     int num;
     int thread1;
